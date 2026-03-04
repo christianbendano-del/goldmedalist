@@ -252,6 +252,112 @@
             .gallery-item.wide, .gallery-item.tall { grid-column: span 1; grid-row: span 1; }
             section { padding: 80px 5%; }
         }
+/* -------- FAMILY TREE MODERN -------- */
+
+.tree {
+    width: 100%;
+    overflow-x: auto;
+    padding-top: 40px;
+}
+
+.tree ul {
+    padding-top: 20px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.tree li {
+    list-style-type: none;
+    text-align: center;
+    position: relative;
+    padding: 20px 15px 0 15px;
+}
+
+/* branch lines */
+
+.tree li::before,
+.tree li::after{
+    content:'';
+    position:absolute;
+    top:0;
+    right:50%;
+    border-top:1px solid rgba(212,175,55,0.4);
+    width:50%;
+    height:20px;
+}
+
+.tree li::after{
+    right:auto;
+    left:50%;
+    border-left:1px solid rgba(212,175,55,0.4);
+}
+
+.tree li:only-child::after,
+.tree li:only-child::before {
+    display:none;
+}
+
+.tree li:only-child{ padding-top:0; }
+
+.tree li:first-child::before,
+.tree li:last-child::after{
+    border:0 none;
+}
+
+.tree ul ul::before{
+    content:'';
+    position:absolute;
+    top:0;
+    left:50%;
+    border-left:1px solid rgba(212,175,55,0.4);
+    width:0;
+    height:20px;
+}
+
+/* family member cards */
+
+/* FAMILY TREE PHOTO STYLE */
+
+.member{
+    background: rgba(255,255,255,0.03);
+    border:1px solid rgba(212,175,55,0.2);
+    padding:15px 25px;
+    display:inline-block;
+    text-align:center;
+    border-radius:6px;
+    transition:0.4s;
+}
+
+.member img{
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid var(--gold);
+    margin-bottom:10px;
+}
+
+.member h4{
+    font-family:'Cinzel', serif;
+    font-size:0.9rem;
+}
+
+.member span{
+    font-size:0.65rem;
+    color:#aaa;
+}
+
+.member:hover{
+    transform:translateY(-6px);
+    box-shadow:0 0 20px rgba(212,175,55,0.4);
+}
+
+.highlight{
+    border:1px solid var(--gold);
+    box-shadow:0 0 20px rgba(212,175,55,0.6);
+}
+
     </style>
 </head>
 <body>
@@ -262,6 +368,7 @@
             <a href="#about">ABOUT ME</a>
             <a href="#gallery">GALLERY</a>
             <a href="#contact">CONTACT</a>
+            <a href="#family">FAMILY</a>
         </div>
     </nav>
 
@@ -356,6 +463,75 @@ Barbie Taguinod continues to be a living legend. Whether she’s sharing her jou
 
         </div>
     </section>
+   <section id="family" style="background:#060606;">
+
+<span class="section-tag" style="text-align:center;">Family</span>
+<h2 class="section-title" style="text-align:center;">The Family Tree</h2>
+
+<div class="tree">
+
+<ul>
+<li>
+
+<div class="member">
+<img src="julio.jpg">
+<h4>Don Julio</h4>
+<span>Grandfather</span>
+</div>
+
+<div class="member">
+<img src="tindeng.jpg">
+<h4>Aling Tindeng</h4>
+<span>Grandmother</span>
+</div>
+
+<ul>
+<li>
+
+<div class="member">
+<img src="rigor.jpg">
+<h4>Rigor Dimaguiba</h4>
+<span>Father</span>
+</div>
+
+<div class="member">
+<img src="marites.jpg">
+<h4>Marites Montenegro</h4>
+<span>Mother</span>
+</div>
+
+<ul>
+<li>
+
+<div class="member highlight">
+<img src="barbie.PNG">
+<h4>Barbie Taguinod</h4>
+<span>Gold Runner Champion</span>
+</div>
+
+<ul>
+<li>
+
+<div class="member">
+<img src="jerry.jpg">
+<h4>Tanggol Montenegro</h4>
+<span>Husband</span>
+</div>
+
+</li>
+</ul>
+
+</li>
+</ul>
+
+</li>
+</ul>
+
+</li>
+</ul>
+
+</div>
+</section>
     <section id="gallery" style="background: #050505;">
         <span class="section-tag" style="text-align: center;">Visuals</span>
         <h2 class="section-title" style="text-align: center;">Championship Moments</h2>
