@@ -226,6 +226,12 @@
             overflow: hidden;
             border-radius: 4px;
             cursor: pointer;
+            .gallery-item {
+    display: block; /* Importante para gumana ang height/width */
+    color: inherit; /* Para hindi maging blue ang text */
+    text-decoration: none; /* Para walang underline */
+    cursor: pointer;
+}
         }
 
         /* Spicing up the grid layout */
@@ -599,7 +605,7 @@ footer{
 <body>
 
    <nav>
-    <a href="bagongligocheck.mp4" class="logo">BAGONG LIGO CHECK</a>
+    <a href="BARBIE.mp4" class="logo">BAGONG LIGO CHECK</a>
     
     <div class="menu-toggle" id="mobile-menu">
         <span class="bar"></span>
@@ -776,43 +782,47 @@ Barbie Taguinod continues to be a living legend. Whether she’s sharing her jou
 
 </div>
 </section>
-    <section id="gallery" style="background: #050505;">
-        <span class="section-tag" style="text-align: center;">Visuals</span>
-        <h2 class="section-title" style="text-align: center;">Championship Moments</h2>
-        
-        <div class="gallery-container">
-            <div class="gallery-item tall" data-aos="fade-up">
-                <img src="bar.jpg" alt="Race Day">
-                <div class="gallery-overlay">
-                    <h3>Peak Performance</h3>
-                </div>
+   <section id="gallery" style="background: #050505;">
+    <span class="section-tag" style="text-align: center;">Visuals</span>
+    <h2 class="section-title" style="text-align: center;">Championship Moments</h2>
+    
+    <div class="gallery-container">
+        <a href="bagongligocheck.mp4" class="gallery-item tall" data-aos="fade-up" style="text-decoration: none;">
+            <img src="bar.jpg" alt="Race Day">
+            <div class="gallery-overlay">
+                <h3>Peak Performance</h3>
             </div>
-            <div class="gallery-item wide" data-aos="fade-up" data-aos-delay="100">
-                <img src="barb.jpg" alt="The Victory">
-                <div class="gallery-overlay">
-                    <h3>Victory Lap</h3>
-                </div>
+        </a>
+
+        <a href="bagongligocheck.mp4" class="gallery-item wide" data-aos="fade-up" data-aos-delay="100" style="text-decoration: none;">
+            <img src="barb.jpg" alt="The Victory">
+            <div class="gallery-overlay">
+                <h3>Victory Lap</h3>
             </div>
-            <div class="gallery-item" data-aos="fade-up" data-aos-delay="200">
-                <img src="ba.jpg" alt="Track Focus">
-                <div class="gallery-overlay">
-                    <h3>Total Focus</h3>
-                </div>
+        </a>
+
+        <a href="bagongligocheck.mp4" class="gallery-item" data-aos="fade-up" data-aos-delay="200" style="text-decoration: none;">
+            <img src="ba.jpg" alt="Track Focus">
+            <div class="gallery-overlay">
+                <h3>Total Focus</h3>
             </div>
-            <div class="gallery-item" data-aos="fade-up" data-aos-delay="300">
-                <img src="b.jpg" alt="Training">
-                <div class="gallery-overlay">
-                    <h3>The Grind</h3>
-                </div>
+        </a>
+
+        <a href="bagongligocheck.mp4" class="gallery-item" data-aos="fade-up" data-aos-delay="300" style="text-decoration: none;">
+            <img src="b.jpg" alt="Training">
+            <div class="gallery-overlay">
+                <h3>The Grind</h3>
             </div>
-            <div class="gallery-item wide" data-aos="fade-up" data-aos-delay="400">
-                <img src="powepuffgirls.jpg" alt="Gold Medalist">
-                <div class="gallery-overlay">
-                    <h3>Gold Standard</h3>
-                </div>
+        </a>
+
+        <a href="bagongligocheck.mp4" class="gallery-item wide" data-aos="fade-up" data-aos-delay="400" style="text-decoration: none;">
+            <img src="powepuffgirls.jpg" alt="Gold Medalist">
+            <div class="gallery-overlay">
+                <h3>Gold Standard</h3>
             </div>
-        </div>
-    </section>
+        </a>
+    </div>
+</section>
 
     <section id="contact" class="contact-section">
         <span class="section-tag">Contact</span>
