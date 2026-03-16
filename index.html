@@ -34,19 +34,20 @@
             overflow-x: hidden;
         }
 
-        /* --- NAVIGATION --- */
+      /* --- NAVIGATION --- */
         nav {
             position: fixed;
             top: 0;
             width: 100%;
-            padding: 25px 8%;
+            padding: 20px 8%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(8, 8, 8, 0.85);
+            background: rgba(8, 8, 8, 0.95);
             backdrop-filter: blur(15px);
             z-index: 1000;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: 0.3s;
         }
 
         .logo {
@@ -56,6 +57,11 @@
             text-decoration: none;
             letter-spacing: 3px;
             font-weight: 900;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
         }
 
         .nav-links a {
@@ -69,6 +75,71 @@
         }
 
         .nav-links a:hover { color: var(--gold); }
+
+        /* --- HAMBURGER MENU --- */
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+        }
+
+        .menu-toggle .bar {
+            display: block;
+            width: 25px;
+            height: 3px;
+            margin: 5px 0;
+            background-color: var(--gold);
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* --- MOBILE VIEW OPTIMIZATION --- */
+        @media (max-width: 768px) {
+            nav {
+                padding: 15px 5%;
+                flex-wrap: wrap; /* Para bumaba ang menu sa ilalim ng logo */
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            /* Top Menu Style */
+            .nav-links {
+                display: none; /* Default na tago */
+                flex-direction: column;
+                width: 100%;
+                text-align: center;
+                background: rgba(8, 8, 8, 0.98);
+                margin-top: 15px;
+                border-top: 1px solid rgba(212, 175, 55, 0.2);
+                overflow: hidden;
+            }
+
+            .nav-links.active {
+                display: flex;
+                padding: 20px 0;
+            }
+
+            .nav-links a {
+                margin: 15px 0;
+                margin-left: 0;
+                font-size: 0.9rem;
+            }
+
+            /* Hamburger Animation to X */
+            .menu-toggle.is-active .bar:nth-child(2) { opacity: 0; }
+            .menu-toggle.is-active .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+            .menu-toggle.is-active .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+            /* Hero adjustments for mobile */
+            .hero-content h1 { font-size: 2.5rem; }
+            .hero-content p { font-size: 0.7rem; letter-spacing: 3px; }
+            
+            /* Family Tree Mobile */
+            .tree ul { display: block; }
+            .tree li { display: block; padding: 20px 0; }
+            .tree li::before, .tree li::after, .tree ul ul::before { display: none; }
+            .member { width: 100%; max-width: 250px; margin: auto; }
+        }
 
         /* --- HERO SECTION --- */
         .hero {
@@ -252,7 +323,7 @@
             .gallery-item.wide, .gallery-item.tall { grid-column: span 1; grid-row: span 1; }
             section { padding: 80px 5%; }
         }
-/* -------- FAMILY TREE MODERN -------- */
+
 
 .tree {
     width: 100%;
@@ -365,24 +436,7 @@
 
 /* NAVIGATION */
 
-nav{
-    padding:15px 5%;
-}
 
-.logo{
-    font-size:1rem;
-}
-
-.nav-links{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:flex-end;
-}
-
-.nav-links a{
-    margin-left:15px;
-    font-size:0.65rem;
-}
 
 
 /* HERO */
@@ -544,15 +598,22 @@ footer{
 </head>
 <body>
 
-    <nav>
-        <a href="#" class="logo">BARBIE T.</a>
-        <div class="nav-links">
-            <a href="#about">ABOUT ME</a>
-            <a href="#gallery">GALLERY</a>
-            <a href="#contact">CONTACT</a>
-            <a href="#family">FAMILY</a>
-        </div>
-    </nav>
+   <nav>
+    <a href="#" class="logo">BARBIE T.</a>
+    
+    <div class="menu-toggle" id="mobile-menu">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    </div>
+
+    <div class="nav-links" id="nav-list">
+        <a href="#about">ABOUT ME</a>
+        <a href="#gallery">GALLERY</a>
+        <a href="#contact">CONTACT</a>
+        <a href="#family">FAMILY</a>
+    </div>
+</nav>
 
     <section class="hero">
         <div class="hero-content" data-aos="fade-up" data-aos-duration="1500">
@@ -687,7 +748,7 @@ Barbie Taguinod continues to be a living legend. Whether she’s sharing her jou
 <li>
 
 <div class="member highlight">
-<img src="barbie.PNG">
+<img src="barbies.PNG">
 <h4>Barbie Taguinod</h4>
 <span>Gold Runner Champion</span>
 </div>
@@ -795,6 +856,22 @@ Barbie Taguinod continues to be a living legend. Whether she’s sharing her jou
             });
         }, { threshold: 1 });
         counters.forEach(c => countObserver.observe(c));
+       const menu = document.querySelector('#mobile-menu');
+    const menuLinks = document.querySelector('#nav-list');
+
+    // Toggle Menu
+    menu.addEventListener('click', function() {
+        menu.classList.toggle('is-active');
+        menuLinks.classList.toggle('active');
+    });
+
+    // Close menu when a link is clicked
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', () => {
+            menu.classList.remove('is-active');
+            menuLinks.classList.remove('active');
+        });
+    });
     </script>
 </body>
 </html>
