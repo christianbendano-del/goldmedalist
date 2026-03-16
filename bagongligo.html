@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Championship Moments | Full Screen View</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body, html {
+            height: 100%;
+            background: #000; /* Deep black para sa cinematic feel */
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Pinipigilan ang scroll para laging sakop ang screen */
+        }
+
+        /* Ambient Glow Background */
+        .bg-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vh;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .main-wrapper {
+            position: relative;
+            z-index: 1;
+            height: 100vh; /* Full screen height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header-meta {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .header-meta h1 {
+            font-size: 0.7rem;
+            letter-spacing: 5px;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+        }
+
+        /* Eto ang magpapa-sakop sa screen */
+        .video-container {
+            width: 100%;
+            max-width: 1200px; /* Max width para hindi masyadong banat sa ultra-wide monitors */
+            height: 70vh; /* 70% ng screen height ay video */
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.8);
+            animation: scaleIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 'contain' para hindi maputol ang video, 'cover' kung gusto mo talagang sagad */
+            background: #000;
+        }
+
+        .nav-footer {
+            margin-top: 30px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: #000;
+            background: #fff;
+            padding: 14px 40px;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(255,255,255,0.2);
+        }
+
+        /* Animations */
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .video-container {
+                height: 50vh;
+            }
+            .header-meta h1 { font-size: 0.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+
+    <div class="main-wrapper">
+        <div class="header-meta">
+            <h1>Now Playing</h1>
+            <p style="font-weight: 300; opacity: 0.8;">Championship Moments: Bagong Ligo Check</p>
+        </div>
+
+        <div class="video-container">
+            <video controls autoplay playsinline poster="barb.jpg">
+                <source src="bagongligocheck.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <div class="nav-footer">
+            <a href="index.html" class="back-btn">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                </svg>
+                EXIT VIEW
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
