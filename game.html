@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Memory Match</title>
+    <link rel="stylesheet" href="game.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+   
+
+    <div class="bg-animate"></div>
+
+    <div class="container">
+        <header>
+            <h1>Memory<span>Match</span></h1>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="label">MOVES</span>
+                    <span class="value" id="moves">0</span>
+                </div>
+                <button class="btn-reset" onclick="resetGame()">NEW GAME</button>
+            </div>
+        </header>
+
+        <main class="game-grid" id="gameGrid"></main>
+
+        <footer class="game-footer">
+            <a href="index.html" class="btn-home">
+                RETURN TO HOME
+            </a>
+            
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
