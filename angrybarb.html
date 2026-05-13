@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angry Birds: 10 Level Challenge</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background: #87CEEB; font-family: 'Arial Rounded MT Bold', Arial, sans-serif; }
+        canvas { display: block; background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%); }
+
+        #hud {
+            position: absolute; top: 20px; left: 20px; right: 20px;
+            display: flex; justify-content: space-between; pointer-events: none; z-index: 10;
+        }
+        .score-board {
+            background: rgba(0, 0, 0, 0.3); color: white; padding: 10px 30px;
+            border-radius: 50px; font-size: 24px; border: 3px solid rgba(255,255,255,0.4);
+        }
+
+        /* Modals */
+        .modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 100; text-align: center;
+        }
+        h1 { color: #FFD700; font-size: 60px; margin: 0; text-shadow: 4px 4px 0 #d35400; }
+        p { color: white; font-size: 20px; }
+        
+        .btn {
+            background: #ff9f43; color: white; border: none; padding: 15px 40px;
+            font-size: 24px; border-radius: 15px; cursor: pointer; margin-top: 20px;
+            box-shadow: 0 5px 0 #d35400; font-weight: bold;
+        }
+        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #d35400; }
+    </style>
+</head>
+<body>
+
+<div id="hud">
+    <div class="score-board">STAGE: <span id="lvl-txt">1</span> / 10</div>
+    <div class="score-board">PIGS: <span id="pig-txt">0</span></div>
+</div>
+
+<div id="win-screen" class="modal">
+    <h1>LEVEL CLEARED!</h1>
+    <button class="btn" onclick="nextLevel()">NEXT LEVEL</button>
+</div>
+
+<div id="final-screen" class="modal">
+    <h1>CONGRATULATIONS!</h1>
+    <p>You have finished all 10 Levels!</p>
+    <button class="btn" onclick="playAgain()">PLAY AGAIN</button>
+</div>
+
+<script>
+const { Engine, Render, Runner, World, Bodies, MouseConstraint, Mouse, Constraint, Events, Composite } = Matter;
+
+const engine = Engine.create({ enableSleeping: true });
+const world = engine.world;
+const width = window.innerWidth;
+const height = window.innerHeight;
+
+const render = Render.create({
+    element: document.body, engine: engine,
+    options: { width, height, wireframes: false, background: 'transparent' }
+});
+
+Render.run(render);
+Runner.run(Runner.create(), engine);
+
+let currentLevel = 0;
+let bird, sling, msc, isDragging = false;
+let enemies = [];
+
+// Settings
+const PIG_IMAGE = 'bah.png';
+const BIRD_IMAGE = 'https://cdn-icons-png.flaticon.com/512/528/528076.png';
+
+// --- 10 LEVELS DATA ---
+const levelData = [
+    { b: [[850, height-80, 20, 100, '#8d6e63'], [950, height-80, 20, 100, '#8d6e63'], [900, height-150, 150, 20, '#8d6e63']], e: [[900, height-100]] },
+    { b: [[800, height-80, 40, 120, '#7f8c8d'], [1000, height-80, 40, 120, '#7f8c8d'], [900, height-160, 250, 40, '#7f8c8d']], e: [[900, height-100], [900, height-220]] },
+    { b: [[800, height-80, 20, 150, '#8d6e63'], [900, height-80, 20, 150, '#8d6e63'], [1000, height-80, 20, 150, '#8d6e63'], [850, height-180, 150, 20, '#a2d9ff'], [950, height-180, 150, 20, '#a2d9ff']], e: [[850, height-100], [950, height-100]] },
+    { b: [[850, height-200, 30, 400, '#8d6e63'], [950, height-200, 30, 400, '#8d6e63'], [900, height-420, 180, 30, '#7f8c8d']], e: [[900, height-460], [900, height-100]] },
+    { b: [[700, height-50, 60, 60, '#7f8c8d'], [1100, height-50, 60, 60, '#7f8c8d'], [900, height-100, 20, 200, '#8d6e63'], [900, height-220, 100, 20, '#a2d9ff']], e: [[900, height-260], [700, height-100], [1100, height-100]] },
+    { b: [[800, height-100, 20, 200, '#8d6e63'], [1000, height-100, 20, 200, '#8d6e63'], [900, height-220, 250, 20, '#8d6e63'], [900, height-300, 20, 150, '#8d6e63']], e: [[900, height-100], [900, height-380]] },
+    { b: [[800, height-50, 50, 50, '#7f8c8d'], [1000, height-50, 50, 50, '#7f8c8d'], [900, height-300, 300, 20, '#8d6e63']], e: [[800, height-350], [1000, height-350], [900, height-50]] },
+    { b: [[750, height-100, 20, 200, '#8d6e63'], [850, height-100, 20, 200, '#8d6e63'], [950, height-100, 20, 200, '#8d6e63'], [1050, height-100, 20, 200, '#8d6e63']], e: [[800, height-100], [900, height-100], [1000, height-100]] },
+    { b: [[800, height-150, 30, 300, '#7f8c8d'], [1000, height-150, 30, 300, '#7f8c8d'], [900, height-320, 250, 30, '#a2d9ff'], [900, height-400, 20, 100, '#8d6e63']], e: [[900, height-100], [900, height-450]] },
+    { b: [[700, height-100, 40, 200, '#7f8c8d'], [1100, height-100, 40, 200, '#7f8c8d'], [900, height-100, 40, 200, '#7f8c8d'], [800, height-220, 200, 20, '#8d6e63'], [1000, height-220, 200, 20, '#8d6e63'], [900, height-300, 100, 100, '#7f8c8d']], e: [[700, height-250], [900, height-400], [1100, height-250]] }
+];
+
+function initLevel(idx) {
+    World.clear(world);
+    enemies = [];
+    isDragging = false;
+    document.getElementById('lvl-txt').innerText = idx + 1;
+
+    // Ground
+    const ground = Bodies.rectangle(width/2, height - 15, width, 50, { 
+        isStatic: true, render: { fillStyle: '#3e8e41' } 
+    });
+    World.add(world, ground);
+
+    const anchor = { x: 250, y: height - 250 };
+    
+    // Bird
+    bird = Bodies.circle(anchor.x, anchor.y, 25, {
+        density: 0.005, restitution: 0.4,
+        render: { sprite: { texture: BIRD_IMAGE, xScale: 0.12, yScale: 0.12 } }
+    });
+
+    sling = Constraint.create({
+        pointA: anchor, bodyB: bird, stiffness: 0.08, length: 1,
+        render: { strokeStyle: '#4B2E1D', lineWidth: 8 }
+    });
+
+    // Build Structures
+    const stage = levelData[idx];
+    stage.b.forEach(v => {
+        World.add(world, Bodies.rectangle(v[0], v[1], v[2], v[3], { 
+            render: { fillStyle: v[4], strokeStyle: 'rgba(0,0,0,0.1)', lineWidth: 1 },
+            friction: 1.0, frictionStatic: 2.0, sleepThreshold: 60
+        }));
+    });
+
+    // Build Enemies
+    stage.e.forEach(v => {
+        const pig = Bodies.circle(v[0], v[1], 24, {
+            render: { sprite: { texture: PIG_IMAGE, xScale: 0.1, yScale: 0.1 } },
+            restitution: 0.5, sleepThreshold: 60
+        });
+        enemies.push(pig);
+        World.add(world, pig);
+    });
+
+    World.add(world, [bird, sling]);
+
+    const mouse = Mouse.create(render.canvas);
+    msc = MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.2, render: { visible: false } } });
+    World.add(world, msc);
+
+    Events.on(msc, 'startdrag', () => isDragging = true);
+    Events.on(msc, 'enddrag', (e) => {
+        isDragging = false;
+        if(e.body === bird) setTimeout(() => { sling.bodyB = null; }, 20);
+    });
+
+    updateUI();
+}
+
+function updateUI() {
+    document.getElementById('pig-txt').innerText = enemies.length;
+}
+
+Events.on(engine, 'afterUpdate', () => {
+    enemies.forEach((en, i) => {
+        if (en.speed > 8 || en.position.y > height) {
+            Composite.remove(world, en);
+            enemies.splice(i, 1);
+            updateUI();
+        }
+    });
+
+    // Win Logic
+    if (enemies.length === 0) {
+        if (currentLevel < 9) {
+            document.getElementById('win-screen').style.display = 'flex';
+        } else {
+            document.getElementById('final-screen').style.display = 'flex';
+        }
+    }
+
+    // Reset Logic (Kapag hindi tumama o huminto na)
+    if (!isDragging && sling.bodyB === null) {
+        if (bird.speed < 0.3 || bird.position.x > width || bird.position.y > height || bird.position.x < 0) {
+            setTimeout(() => {
+                if (!isDragging && sling.bodyB === null) resetBird();
+            }, 800);
+        }
+    }
+});
+
+function resetBird() {
+    World.remove(world, bird);
+    const anchor = { x: 250, y: height - 250 };
+    bird = Bodies.circle(anchor.x, anchor.y, 25, {
+        density: 0.005,
+        render: { sprite: { texture: BIRD_IMAGE, xScale: 0.12, yScale: 0.12 } }
+    });
+    sling.bodyB = bird;
+    World.add(world, bird);
+}
+
+function nextLevel() {
+    document.getElementById('win-screen').style.display = 'none';
+    currentLevel++;
+    initLevel(currentLevel);
+}
+
+function playAgain() {
+    document.getElementById('final-screen').style.display = 'none';
+    currentLevel = 0;
+    initLevel(0);
+}
+
+initLevel(0);
+</script>
+</body>
+</html>

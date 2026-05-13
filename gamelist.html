@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ph">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbie Ng CSI - Games Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --gold-bright: #FFD700;
+            --dark-maroon: #2a0a0a;
+            --glass: rgba(0, 0, 0, 0.7);
+        }
+
+        body {
+            background-color: #000;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            color: white;
+        }
+
+        /* MAIN CONTAINER */
+        .barbie-games-hub {
+            background-color: rgba(15, 15, 15, 0.95);
+            border: 2.5px solid var(--gold);
+            border-radius: 25px;
+            padding: 80px 30px 40px 30px;
+            max-width: 1150px;
+            margin: 100px auto;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9), 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        /* NAVIGATION TABS */
+        .hub-nav-wrapper {
+            position: absolute;
+            top: -28px;
+            left: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-tab {
+            background: #1a1a1a;
+            color: #888;
+            padding: 10px 20px;
+            border: 2px solid #333;
+            border-radius: 12px 12px 0 0;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .nav-tab:hover {
+            color: #fff;
+            border-color: #555;
+        }
+
+        .hub-label {
+            background: var(--dark-maroon);
+            color: var(--gold);
+            padding: 12px 40px;
+            border: 2.5px solid var(--gold);
+            border-radius: 12px 12px 0 0;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* GAMES GRID */
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        /* GAME CARD WITH IMAGE BACKGROUND */
+        .game-pod {
+            position: relative;
+            height: 300px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            transition: all 0.4s ease;
+            text-decoration: none;
+        }
+
+        /* Background Image Layer */
+        .game-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.5s ease;
+            z-index: 1;
+        }
+
+        .game-pod:hover .game-bg {
+            transform: scale(1.1);
+        }
+
+        /* Gradient Overlay para mabasa ang text */
+        .game-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 20%, transparent 80%);
+            z-index: 2;
+        }
+
+        /* Content inside card */
+        .game-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .game-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: white;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* PLAY BUTTON AS LINK */
+        .play-link-btn {
+            background: var(--gold);
+            color: black;
+            padding: 8px 25px;
+            border-radius: 5px;
+            font-weight: 900;
+            font-size: 0.8rem;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .play-link-btn:hover {
+            background: white;
+            box-shadow: 0 0 15px var(--gold-bright);
+        }
+
+        .game-pod:hover {
+            border-color: var(--gold-bright);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        @media (max-width: 768px) {
+            .hub-nav-wrapper { left: 10px; right: 10px; justify-content: center; }
+            .hub-label, .nav-tab { font-size: 0.7rem; padding: 10px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="barbie-games-hub">
+        
+        <div class="hub-nav-wrapper">
+            <a href="index.html" class="nav-tab">HOME</a>
+            
+        </div>
+
+        <div class="hub-grid">
+            
+            <div class="game-pod">
+                <div class="game-bg" style="background-image: url('barbie.PNG');"></div>
+                <div class="game-overlay"></div>
+                <div class="game-info">
+                    <h3 class="game-title">BARBIE MATCH</h3>
+                    <a href="game.html" class="play-link-btn">Play</a>
+                </div>
+            </div>
+
+            <div class="game-pod">
+                <div class="game-bg" style="background-image: url('barbies.PNG');"></div>
+                <div class="game-overlay"></div>
+                <div class="game-info">
+                    <h3 class="game-title">ANGRY BARBIE</h3>
+                    <a href="angrybarb.html" class="play-link-btn">Play</a>
+                </div>
+            </div>
+
+            
+        </div>
+    </section>
+
+</body>
+</html>
