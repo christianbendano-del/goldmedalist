@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windy UI Exact Replica</title>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #111; color: white; }
+
+    #map-wrapper { position: relative; width: 100vw; height: 100vh; }
+    #map { height: 100%; width: 100%; z-index: 1; }
+
+    /* 🍃 Canvas overlay para sa Moving Wind Lines */
+    #wind-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* 🔴 TOP BAR / HEADER */
+    .windy-header {
+      position: absolute;
+      top: 12px;
+      left: 15px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .search-box-wrap {
+      position: relative;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .search-box-wrap input {
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 4px;
+      width: 180px;
+      font-size: 13px;
+      color: #333;
+    }
+
+    .windy-logo {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #ef4444;
+      backdrop-filter: blur(4px);
+    }
+
+    /* 🔘 RIGHT MENU BAR (Windy Side Menu) */
+    .right-menu {
+      position: absolute;
+      top: 60px;
+      right: 15px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .menu-label {
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 3px 8px;
+      border-radius: 10px;
+      color: #e2e8f0;
+      backdrop-filter: blur(4px);
+    }
+
+    .menu-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 2px solid rgba(255,255,255,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .menu-icon.active {
+      background: #ef4444;
+      border-color: #fff;
+    }
+
+    /* ⏱️ BOTTOM TIMELINE BAR */
+    .bottom-timeline {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 45px;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .play-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #ef4444;
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-right: 15px;
+    }
+
+    .days-bar {
+      display: flex;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .day-slot {
+      font-size: 11px;
+      color: #94a3b8;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .day-slot.active {
+      background: #38bdf8;
+      color: #0f172a;
+      font-weight: bold;
+    }
+
+    /* 📊 BOTTOM RIGHT WIND SCALE (LEGEND) */
+    .wind-scale {
+      position: absolute;
+      bottom: 50px;
+      right: 15px;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      padding: 5px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 10px;
+    }
+
+    .scale-gradient {
+      width: 140px;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #3b82f6, #22c55e, #eab308, #f97316, #ef4444, #a855f7);
+    }
+
+    /* 🌀 STORM EYE MARKER */
+    .storm-container {
+      position: relative;
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .storm-ring {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border: 2px solid #ef4444;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #ef4444;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    .storm-eye-img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      z-index: 2;
+      animation: spin-slow 12s linear infinite;
+    }
+
+    .storm-tag {
+      position: absolute;
+      top: -12px;
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid #ef4444;
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.9; } 50% { transform: scale(1.2); opacity: 0.3; } 100% { transform: scale(0.9); opacity: 0.9; } }
+  </style>
+</head>
+<body>
+
+  <div id="map-wrapper">
+    <!-- Top Header -->
+    <div class="windy-header">
+      <div class="search-box-wrap">
+        🔍 <input type="text" placeholder="Search..." />
+      </div>
+      <div class="windy-logo">🌀 Windy.com</div>
+    </div>
+
+    <!-- Right Menu Buttons (Exact Windy Style) -->
+    <div class="right-menu">
+      <div class="menu-item"><span class="menu-label">Weather radar</span><div class="menu-icon">📡</div></div>
+      <div class="menu-item"><span class="menu-label">Satellite</span><div class="menu-icon">🛰️</div></div>
+      <div class="menu-item"><span class="menu-label">Wind</span><div class="menu-icon active">💨</div></div>
+      <div class="menu-item"><span class="menu-label">Rain, thunder</span><div class="menu-icon">🌧️</div></div>
+      <div class="menu-item"><span class="menu-label">Temperature</span><div class="menu-icon">🌡️</div></div>
+      <div class="menu-item"><span class="menu-label">Hurricane tracker</span><div class="menu-icon">🌀</div></div>
+    </div>
+
+    <!-- Bottom Wind Legend -->
+    <div class="wind-scale">
+      <span>kt</span>
+      <div class="scale-gradient"></div>
+      <span>0 5 10 20 30 40 60</span>
+    </div>
+
+    <!-- Bottom Timeline Bar -->
+    <div class="bottom-timeline">
+      <button class="play-btn">▶</button>
+      <div class="days-bar">
+        <div class="day-slot active">Wed 12</div>
+        <div class="day-slot">Thu 13</div>
+        <div class="day-slot">Fri 14</div>
+        <div class="day-slot">Sat 15</div>
+        <div class="day-slot">Sun 16</div>
+        <div class="day-slot">Mon 17</div>
+        <div class="day-slot">Tue 18</div>
+        <div class="day-slot">Wed 19</div>
+      </div>
+    </div>
+
+    <!-- Map Elements -->
+    <div id="map"></div>
+    <canvas id="wind-canvas"></canvas>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // 1. Initialize Leaflet Map
+    const map = L.map('map', { zoomControl: false }).setView([20.0, 135.0], 4);
+
+    // 2. ArcGIS Topographic Map (Green / Yellow Vibrant Basemap layer)
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles © Esri'
+    }).addTo(map);
+
+    // 3. Helper for Custom Storm Eye Marker
+    function createStormIcon(imgUrl, stormName, windSpeed) {
+      return L.divIcon({
+        html: `
+          <div class="storm-container">
+            <div class="storm-tag">${stormName} (${windSpeed})</div>
+            <div class="storm-ring"></div>
+            <img src="${imgUrl}" class="storm-eye-img" />
+          </div>
+        `,
+        className: '',
+        iconSize: [70, 70],
+        iconAnchor: [35, 35]
+      });
+    }
+
+    // 4. Multiple Storms Data
+    const storms = [
+      {
+        name: "BAGYONG KAP BARBIE",
+        wind: "150 km/h",
+        image: "b8.png",
+        path: [[25.0, 128.0], [28.0, 131.0], [31.5, 134.0]],
+        colors: { outer: '#22c55e', mid: '#f97316', core: '#ef4444' }
+      },
+      {
+        name: "BAGYONG BARBIE",
+        wind: "170 km/h",
+        image: "bah.png",
+        path: [[14.0, 152.0], [18.0, 148.0], [22.5, 144.0]],
+        colors: { outer: '#22c55e', mid: '#eab308', core: '#ef4444' }
+      },
+      {
+        name: "BAGYONG ALKAB",
+        wind: "70 km/h",
+        image: "images/b10.png",
+        path: [[13.0, 136.0], [15.5, 133.0], [18.0, 130.0]],
+        colors: { outer: '#22c55e', mid: '#84cc16', core: '#f97316' }
+      }
+    ];
+
+    let stormPixelCenters = [];
+
+    // Render Storms & Windy Color Layers
+    storms.forEach(storm => {
+      const eyePos = storm.path[storm.path.length - 1];
+
+      // Wind Swirl Color Circles
+      L.circle(eyePos, { radius: 500000, color: 'transparent', fillColor: storm.colors.outer, fillOpacity: 0.35 }).addTo(map);
+      L.circle(eyePos, { radius: 280000, color: 'transparent', fillColor: storm.colors.mid, fillOpacity: 0.5 }).addTo(map);
+      L.circle(eyePos, { radius: 130000, color: 'transparent', fillColor: storm.colors.core, fillOpacity: 0.7 }).addTo(map);
+
+      // Trajectory Line
+      L.polyline(storm.path, { color: '#ffffff', weight: 2, dashArray: '5, 6', opacity: 0.8 }).addTo(map);
+
+      // Eye Marker
+      L.marker(eyePos, { icon: createStormIcon(storm.image, storm.name, storm.wind) }).addTo(map);
+    });
+
+    // -------------------------------------------------------------
+    // 🍃 WIND PARTICLES ANIMATION
+    // -------------------------------------------------------------
+    const canvas = document.getElementById('wind-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function updateCanvasDimensions() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      recalculateStormPixelCoordinates();
+    }
+
+    function recalculateStormPixelCoordinates() {
+      stormPixelCenters = storms.map(s => {
+        const eyePos = s.path[s.path.length - 1];
+        const point = map.latLngToContainerPoint(L.latLng(eyePos[0], eyePos[1]));
+        return { x: point.x, y: point.y };
+      });
+    }
+
+    window.addEventListener('resize', updateCanvasDimensions);
+    map.on('move', recalculateStormPixelCoordinates);
+    map.on('zoomend', recalculateStormPixelCoordinates);
+    updateCanvasDimensions();
+
+    const particleCount = 400;
+    const particles = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        length: Math.random() * 8 + 4,
+        speed: Math.random() * 1.8 + 0.8,
+        life: Math.random() * 100
+      });
+    }
+
+    function drawWindAnimation() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.lineWidth = 1.1;
+
+      particles.forEach(p => {
+        let vx = 1.2;
+        let vy = -0.2;
+
+        stormPixelCenters.forEach(center => {
+          const dx = p.x - center.x;
+          const dy = p.y - center.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 300) {
+            const angle = Math.atan2(dy, dx);
+            const pull = (300 - dist) / 300;
+            vx += -Math.sin(angle) * pull * 4;
+            vy += Math.cos(angle) * pull * 4;
+          }
+        });
+
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + vx * p.length, p.y + vy * p.length);
+        ctx.stroke();
+
+        p.x += vx * p.speed;
+        p.y += vy * p.speed;
+        p.life += 1;
+
+        if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height || p.life > 100) {
+          p.x = Math.random() * canvas.width;
+          p.y = Math.random() * canvas.height;
+          p.life = 0;
+        }
+      });
+
+      requestAnimationFrame(drawWindAnimation);
+    }
+
+    drawWindAnimation();
+  </script>
+
+</body>
+</html>
