@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8">
+  <title>Super Mario Bros - Custom Enemy Face Edition</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    #game-container {
+      position: relative;
+      border: 4px solid #fff;
+      box-shadow: 0 0 20px rgba(255,255,255,0.2);
+    }
+    canvas {
+      background: #5c94fc;
+      display: block;
+    }
+    .ui-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      text-shadow: 2px 2px #000;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>SUPER BARBIE 👹</h1>
+  <div id="game-container">
+    <div class="ui-overlay" id="ui">Stage: 1/5 | Lives: ❤️❤️❤️ | Coins: 🪙0 | Score: 0</div>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+  </div>
+  <p>[A / D / Left / Right] = Move| [W / Space / Up] = Jump</p>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const ui = document.getElementById('ui');
+
+    // --- MGA LARAWAN NG KALABAN AT BOSS ---
+    // Pwede mong palitan ang mga URL na ito ng sarili mong image links!
+    const enemyImg = new Image();
+    enemyImg.src = 'bah.png'; // Sample Goomba image (URL)
+
+    const bossImg = new Image();
+    bossImg.src = 'b8.png'; // Sample Bowser image (URL)
+
+    let currentStage = 1;
+    let score = 0;
+    let coins = 0;
+    let lives = 3;
+    let gameOver = false;
+    let gameWon = false;
+    let invulnerableTimer = 0;
+
+    let cameraX = 0;
+    let levelWidth = 2400;
+
+    const keys = {};
+    window.addEventListener('keydown', e => {
+      keys[e.code] = true;
+      if(["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(e.code) > -1) {
+        e.preventDefault();
+      }
+    });
+    window.addEventListener('keyup', e => keys[e.code] = false);
+
+    // Player (Mario) Object
+    const player = {
+      x: 50,
+      y: 300,
+      width: 28,
+      height: 34,
+      facing: 'right',
+      isBig: false,
+      vx: 0,
+      vy: 0,
+      speed: 5.5,
+      jumpForce: -13,
+      grounded: false,
+      reset() {
+        this.x = 50;
+        this.y = 300;
+        this.vx = 0;
+        this.vy = 0;
+      },
+      grow() {
+        if (!this.isBig) {
+          this.isBig = true;
+          this.height = 50;
+          this.y -= 16;
+        }
+      },
+      shrink() {
+        if (this.isBig) {
+          this.isBig = false;
+          this.height = 34;
+        }
+      }
+    };
+
+    const gravity = 0.55;
+    const friction = 0.85;
+
+    let platforms = [];
+    let qBlocks = [];
+    let pipes = [];
+    let items = [];
+    let enemies = [];
+    let boss = null;
+    let bossProjectiles = [];
+    let endGoal = { x: 2300, y: 0, width: 20, height: 360 };
+
+    function loadStage(stageNum) {
+      platforms = [];
+      qBlocks = [];
+      pipes = [];
+      items = [];
+      enemies = [];
+      boss = null;
+      bossProjectiles = [];
+      cameraX = 0;
+      player.reset();
+
+      if (stageNum < 5) {
+        levelWidth = 2400;
+        endGoal.x = 2300;
+        canvas.style.background = '#5c94fc';
+      } else {
+        levelWidth = 1200;
+        endGoal.x = 1100;
+        canvas.style.background = '#220005';
+      }
+
+      // STAGE 1
+      if (stageNum === 1) {
+        platforms.push({ x: 0, y: 360, width: 900, height: 40, color: '#e65200' });
+        platforms.push({ x: 1000, y: 360, width: 800, height: 40, color: '#e65200' });
+        platforms.push({ x: 1900, y: 360, width: 500, height: 40, color: '#e65200' });
+
+        pipes.push({ x: 350, y: 300, width: 48, height: 60 });
+        pipes.push({ x: 650, y: 280, width: 48, height: 80 });
+        pipes.push({ x: 1150, y: 300, width: 48, height: 60 });
+        pipes.push({ x: 1550, y: 260, width: 48, height: 100 });
+
+        platforms.push({ x: 450, y: 240, width: 120, height: 20, color: '#00a800' });
+
+        qBlocks.push({ x: 200, y: 240, width: 32, height: 32, hit: false, content: 'mushroom' });
+        qBlocks.push({ x: 232, y: 240, width: 32, height: 32, hit: false, content: 'coin' });
+        qBlocks.push({ x: 1250, y: 170, width: 32, height: 32, hit: false, content: 'mushroom' });
+
+        enemies.push({ x: 500, y: 328, width: 32, height: 32, vx: -2 });
+        enemies.push({ x: 800, y: 328, width: 32, height: 32, vx: -2 });
+        enemies.push({ x: 1300, y: 328, width: 32, height: 32, vx: -2.5 });
+        enemies.push({ x: 1700, y: 328, width: 32, height: 32, vx: -2.5 });
+      }
+      // STAGE 2
+      else if (stageNum === 2) {
+        platforms.push({ x: 0, y: 360, width: 600, height: 40, color: '#e65200' });
+        platforms.push({ x: 700, y: 360, width: 600, height: 40, color: '#e65200' });
+        platforms.push({ x: 1400, y: 360, width: 500, height: 40, color: '#e65200' });
+        platforms.push({ x: 2000, y: 360, width: 400, height: 40, color: '#e65200' });
+
+        pipes.push({ x: 200, y: 280, width: 48, height: 80 });
+        pipes.push({ x: 850, y: 260, width: 48, height: 100 });
+        pipes.push({ x: 1500, y: 300, width: 48, height: 60 });
+        pipes.push({ x: 1750, y: 280, width: 48, height: 80 });
+
+        qBlocks.push({ x: 270, y: 160, width: 32, height: 32, hit: false, content: 'mushroom' });
+        qBlocks.push({ x: 900, y: 140, width: 32, height: 32, hit: false, content: 'coin' });
+
+        enemies.push({ x: 400, y: 328, width: 32, height: 32, vx: -2 });
+        enemies.push({ x: 1000, y: 328, width: 32, height: 32, vx: -2.5 });
+        enemies.push({ x: 1650, y: 328, width: 32, height: 32, vx: -3 });
+      }
+      // STAGE 3
+      else if (stageNum === 3) {
+        platforms.push({ x: 0, y: 360, width: 500, height: 40, color: '#e65200' });
+        platforms.push({ x: 600, y: 360, width: 400, height: 40, color: '#e65200' });
+        platforms.push({ x: 1100, y: 360, width: 500, height: 40, color: '#e65200' });
+        platforms.push({ x: 1700, y: 360, width: 700, height: 40, color: '#e65200' });
+
+        pipes.push({ x: 300, y: 260, width: 48, height: 100, hasPlant: true });
+        pipes.push({ x: 750, y: 280, width: 48, height: 80 });
+        pipes.push({ x: 1300, y: 260, width: 48, height: 100, hasPlant: true });
+        pipes.push({ x: 1850, y: 280, width: 48, height: 80 });
+
+        qBlocks.push({ x: 380, y: 120, width: 32, height: 32, hit: false, content: 'mushroom' });
+
+        enemies.push({ x: 450, y: 328, width: 32, height: 32, vx: -2.5 });
+        enemies.push({ x: 900, y: 328, width: 32, height: 32, vx: -2.5 });
+        enemies.push({ x: 1500, y: 328, width: 32, height: 32, vx: -3 });
+      }
+      // STAGE 4
+      else if (stageNum === 4) {
+        platforms = [
+          { x: 0, y: 360, width: 400, height: 40, color: '#e65200' },
+          { x: 500, y: 360, width: 300, height: 40, color: '#e65200' },
+          { x: 900, y: 360, width: 350, height: 40, color: '#e65200' },
+          { x: 1350, y: 360, width: 400, height: 40, color: '#e65200' },
+          { x: 1850, y: 360, width: 550, height: 40, color: '#e65200' }
+        ];
+
+        pipes.push({ x: 200, y: 280, width: 48, height: 80 });
+        pipes.push({ x: 1050, y: 260, width: 48, height: 100, hasPlant: true });
+        pipes.push({ x: 1500, y: 280, width: 48, height: 80, hasPlant: true });
+
+        qBlocks.push({ x: 250, y: 180, width: 32, height: 32, hit: false, content: 'mushroom' });
+
+        enemies.push({ x: 300, y: 328, width: 32, height: 32, vx: -2 });
+        enemies.push({ x: 1150, y: 328, width: 32, height: 32, vx: -3 });
+        enemies.push({ x: 1950, y: 328, width: 32, height: 32, vx: -3.5 });
+      }
+      // STAGE 5 (BOWSER CASTLE)
+      else if (stageNum === 5) {
+        platforms.push({ x: 0, y: 360, width: 1200, height: 40, color: '#440000' });
+        pipes.push({ x: 250, y: 280, width: 48, height: 80 });
+        qBlocks.push({ x: 150, y: 220, width: 32, height: 32, hit: false, content: 'mushroom' });
+
+        boss = {
+          x: 900,
+          y: 270,
+          width: 75,
+          height: 85,
+          hp: 5,
+          maxHp: 5,
+          vy: 0,
+          jumpTimer: 0,
+          shootTimer: 0
+        };
+      }
+    }
+
+    function update() {
+      if (gameOver || gameWon) return;
+
+      if (invulnerableTimer > 0) invulnerableTimer--;
+
+      if (keys['KeyA'] || keys['ArrowLeft']) {
+        player.vx = -player.speed;
+        player.facing = 'left';
+      }
+      else if (keys['KeyD'] || keys['ArrowRight']) {
+        player.vx = player.speed;
+        player.facing = 'right';
+      }
+      else {
+        player.vx *= friction;
+      }
+
+      if ((keys['KeyW'] || keys['ArrowUp'] || keys['Space']) && player.grounded) {
+        player.vy = player.jumpForce;
+        player.grounded = false;
+      }
+
+      player.vy += gravity;
+      player.x += player.vx;
+      player.y += player.vy;
+
+      if (player.x < 0) player.x = 0;
+
+      // Camera Follow
+      cameraX = player.x - 300;
+      if (cameraX < 0) cameraX = 0;
+      if (cameraX > levelWidth - canvas.width) cameraX = levelWidth - canvas.width;
+
+      player.grounded = false;
+
+      let solidObjects = [...platforms, ...pipes];
+
+      for (let p of solidObjects) {
+        if (checkCollision(player, p)) {
+          if (player.vy > 0 && player.y + player.height - player.vy <= p.y + 12) {
+            player.y = p.y - player.height;
+            player.vy = 0;
+            player.grounded = true;
+          }
+          else if (player.vx > 0 && player.x + player.width - player.vx <= p.x) {
+            player.x = p.x - player.width;
+          }
+          else if (player.vx < 0 && player.x - player.vx >= p.x + p.width) {
+            player.x = p.x + p.width;
+          }
+        }
+      }
+
+      // Question Blocks
+      for (let b of qBlocks) {
+        if (checkCollision(player, b)) {
+          if (player.vy > 0 && player.y + player.height - player.vy <= b.y + 10) {
+            player.y = b.y - player.height;
+            player.vy = 0;
+            player.grounded = true;
+          } else if (player.vy < 0 && player.y - player.vy >= b.y + b.height - 10) {
+            player.y = b.y + b.height;
+            player.vy = 0;
+            
+            if (!b.hit) {
+              b.hit = true;
+              if (b.content === 'coin') {
+                coins++;
+                score += 200;
+              } else if (b.content === 'mushroom') {
+                items.push({
+                  x: b.x + 2,
+                  y: b.y - 28,
+                  width: 28,
+                  height: 28,
+                  vx: 2,
+                  vy: 0
+                });
+              }
+            }
+          }
+        }
+      }
+
+      // Items Physics
+      for (let i = items.length - 1; i >= 0; i--) {
+        let it = items[i];
+        it.vy += gravity;
+        it.x += it.vx;
+        it.y += it.vy;
+
+        for (let p of solidObjects) {
+          if (checkCollision(it, p) && it.y + it.height - it.vy <= p.y + 10) {
+            it.y = p.y - it.height;
+            it.vy = 0;
+          }
+        }
+
+        if (checkCollision(player, it)) {
+          player.grow();
+          score += 1000;
+          items.splice(i, 1);
+        }
+      }
+
+      if (player.y > canvas.height) {
+        takeDamage();
+      }
+
+      // Goombas
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        let e = enemies[i];
+        e.x += e.vx;
+        
+        for (let pipe of pipes) {
+          if (checkCollision(e, pipe)) e.vx *= -1;
+        }
+
+        if (e.x <= 0 || e.x + e.width >= levelWidth) e.vx *= -1;
+
+        if (checkCollision(player, e)) {
+          if (player.vy > 0 && player.y + player.height - player.vy <= e.y + 15) {
+            enemies.splice(i, 1);
+            player.vy = -9;
+            score += 100;
+          } else if (invulnerableTimer === 0) {
+            if (player.isBig) {
+              player.shrink();
+              invulnerableTimer = 60;
+            } else {
+              takeDamage();
+            }
+          }
+        }
+      }
+
+      // Bowser Boss
+      if (boss) {
+        boss.jumpTimer++;
+        if (boss.jumpTimer > 110) {
+          boss.vy = -9;
+          boss.jumpTimer = 0;
+        }
+        boss.vy += gravity;
+        boss.y += boss.vy;
+
+        if (boss.y >= 275) {
+          boss.y = 275;
+          boss.vy = 0;
+        }
+
+        boss.shootTimer++;
+        if (boss.shootTimer > 100) {
+          bossProjectiles.push({
+            x: boss.x,
+            y: boss.y + 20,
+            width: 18,
+            height: 18,
+            vx: -4.5
+          });
+          boss.shootTimer = 0;
+        }
+
+        if (checkCollision(player, boss)) {
+          if (player.vy > 0 && player.y + player.height - player.vy <= boss.y + 25) {
+            boss.hp -= 1;
+            player.vy = -11;
+            if (boss.hp <= 0) {
+              boss = null;
+              gameWon = true;
+            }
+          } else if (invulnerableTimer === 0) {
+            if (player.isBig) {
+              player.shrink();
+              invulnerableTimer = 60;
+            } else {
+              takeDamage();
+            }
+          }
+        }
+      }
+
+      // Boss Fireballs
+      for (let i = bossProjectiles.length - 1; i >= 0; i--) {
+        let p = bossProjectiles[i];
+        p.x += p.vx;
+        if (checkCollision(player, p) && invulnerableTimer === 0) {
+          if (player.isBig) {
+            player.shrink();
+            invulnerableTimer = 60;
+          } else {
+            takeDamage();
+          }
+        }
+        if (p.x < 0) bossProjectiles.splice(i, 1);
+      }
+
+      // Goal Flag
+      if (currentStage < 5 && player.x + player.width >= endGoal.x) {
+        currentStage++;
+        score += 500;
+        loadStage(currentStage);
+      }
+
+      let hearts = "❤️".repeat(lives);
+      ui.innerText = `Stage: ${currentStage}/5 | Lives: ${hearts} | Coins: 🪙${coins} | Score: ${score}` + (boss ? ` | Bowser HP: ${boss.hp}/${boss.maxHp}` : '');
+    }
+
+    function checkCollision(r1, r2) {
+      return r1.x < r2.x + r2.width &&
+             r1.x + r1.width > r2.x &&
+             r1.y < r2.y + r2.height &&
+             r1.y + r1.height > r2.y;
+    }
+
+    function takeDamage() {
+      lives--;
+      invulnerableTimer = 60;
+      player.shrink();
+      player.reset();
+
+      if (lives <= 0) {
+        gameOver = true;
+        alert(`GAME OVER!\nUulit sa Stage 1.`);
+        lives = 3;
+        coins = 0;
+        currentStage = 1;
+        score = 0;
+        gameOver = false;
+        loadStage(1);
+      }
+    }
+
+    // --- DRAWING FUNCTIONS WITH CUSTOM PICTURES ---
+    function drawPipe(pipe) {
+      ctx.fillStyle = '#00a800';
+      ctx.fillRect(pipe.x + 4, pipe.y + 12, pipe.width - 8, pipe.height - 12);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(pipe.x + 4, pipe.y + 12, pipe.width - 8, pipe.height - 12);
+
+      ctx.fillStyle = '#00d800';
+      ctx.fillRect(pipe.x, pipe.y, pipe.width, 14);
+      ctx.strokeRect(pipe.x, pipe.y, pipe.width, 14);
+
+      ctx.fillStyle = '#a8ff80';
+      ctx.fillRect(pipe.x + 6, pipe.y + 2, 6, 10);
+      ctx.fillRect(pipe.x + 8, pipe.y + 14, 6, pipe.height - 16);
+
+      if (pipe.hasPlant) {
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(pipe.x + pipe.width / 2, pipe.y - 10, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(pipe.x + pipe.width / 2 - 4, pipe.y - 14, 4, 4);
+        ctx.fillRect(pipe.x + pipe.width / 2 + 2, pipe.y - 8, 4, 4);
+      }
+    }
+
+    function drawMario(p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      if (p.facing === 'left') {
+        ctx.translate(p.width, 0);
+        ctx.scale(-1, 1);
+      }
+
+      let h = p.height;
+      let w = p.width;
+
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(w * 0.2, 0, w * 0.7, h * 0.2);
+      ctx.fillStyle = '#ffcc99';
+      ctx.fillRect(w * 0.3, h * 0.2, w * 0.6, h * 0.25);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(w * 0.6, h * 0.25, w * 0.15, h * 0.1);
+      ctx.fillRect(w * 0.4, h * 0.35, w * 0.5, h * 0.1);
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(w * 0.2, h * 0.45, w * 0.6, h * 0.25);
+      ctx.fillStyle = '#0000ff';
+      ctx.fillRect(w * 0.2, h * 0.6, w * 0.6, h * 0.3);
+      ctx.fillStyle = '#ffff00';
+      ctx.fillRect(w * 0.3, h * 0.65, w * 0.1, h * 0.08);
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(w * 0.1, h * 0.85, w * 0.8, h * 0.15);
+
+      ctx.restore();
+    }
+
+    // DRAW ENEMY (GUMAGAMIT NG PICTURE)
+    function drawGoomba(e) {
+      if (enemyImg.complete && enemyImg.naturalWidth !== 0) {
+        ctx.drawImage(enemyImg, e.x, e.y, e.width, e.height);
+      } else {
+        // Fallback drawing kapag naglo-load pa ang picture
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(e.x, e.y, e.width, e.height);
+      }
+    }
+
+    // DRAW BOSS (GUMAGAMIT NG PICTURE)
+    function drawBowser(b) {
+      if (bossImg.complete && bossImg.naturalWidth !== 0) {
+        ctx.drawImage(bossImg, b.x, b.y, b.width, b.height);
+      } else {
+        // Fallback drawing
+        ctx.fillStyle = '#008000';
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+      }
+    }
+
+    function drawQuestionBlock(b) {
+      ctx.fillStyle = b.hit ? '#8b5a2b' : '#f8b800';
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(b.x, b.y, b.width, b.height);
+
+      if (!b.hit) {
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText('?', b.x + 10, b.y + 24);
+      }
+    }
+
+    function drawMushroom(it) {
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(it.x, it.y, it.width, it.height * 0.6);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(it.x + 4, it.y + 4, 6, 6);
+      ctx.fillRect(it.x + it.width - 10, it.y + 4, 6, 6);
+      ctx.fillStyle = '#ffcc99';
+      ctx.fillRect(it.x + 4, it.y + it.height * 0.5, it.width - 8, it.height * 0.5);
+    }
+
+    // MAIN DRAW
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.translate(-cameraX, 0);
+
+      // Platforms
+      for (let p of platforms) {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.width, p.height);
+      }
+
+      // Green Pipes
+      for (let pipe of pipes) drawPipe(pipe);
+
+      // Question Blocks
+      for (let b of qBlocks) drawQuestionBlock(b);
+
+      // Mushrooms
+      for (let it of items) drawMushroom(it);
+
+      // Flagpole
+      if (currentStage < 5) {
+        ctx.fillStyle = '#ffff00';
+        ctx.fillRect(endGoal.x, 60, 10, 300);
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.moveTo(endGoal.x, 60);
+        ctx.lineTo(endGoal.x - 30, 80);
+        ctx.lineTo(endGoal.x, 100);
+        ctx.fill();
+      }
+
+      // Mario
+      if (invulnerableTimer % 10 < 5) drawMario(player);
+
+      // Goombas
+      for (let e of enemies) drawGoomba(e);
+
+      // Bowser
+      if (boss) {
+        drawBowser(boss);
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(boss.x, boss.y - 15, boss.width, 8);
+        ctx.fillStyle = '#00ff00';
+        ctx.fillRect(boss.x, boss.y - 15, (boss.hp / boss.maxHp) * boss.width, 8);
+      }
+
+      // Boss Fireballs
+      for (let p of bossProjectiles) {
+        ctx.fillStyle = '#ff5500';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.width / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+
+      // Victory Screen
+      if (gameWon) {
+        ctx.fillStyle = 'rgba(0,0,0,0.85)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#00ff00';
+        ctx.font = '28px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('VICTORY! 🎉', canvas.width / 2, 180);
+        ctx.fillText('NATALO MO SI BARBIE!', canvas.width / 2, 220);
+        ctx.fillText(`FINAL SCORE: ${score} | COINS: ${coins}`, canvas.width / 2, 260);
+      }
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    loadStage(1);
+    loop();
+  </script>
+</body>
+</html>
